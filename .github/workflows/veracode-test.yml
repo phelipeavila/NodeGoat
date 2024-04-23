@@ -14,6 +14,7 @@ jobs:
   Veracode-SCA:
     name: Veracode SCA
     runs-on: self-hosted
+    needs: [Checkout]
     strategy:
       fail-fast: true
     steps:
@@ -33,6 +34,9 @@ jobs:
   Veracode-SAST-Policy:
     name: Veracode SAST Policy
     runs-on: self-hosted
+    needs: [Veracode-SCA]
+    env:
+      APPLICATION_NAME: NodeApp - test
     container:
       image: veracode/api-wrapper-java:latest
       options: --user root
@@ -48,5 +52,5 @@ jobs:
       - name: Scan
         run: |
           zip -r -v nodegoat.zip . -i '*.js' '*.html'
-          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname "NodeGoat-Demo" -version "${{ github.run_id }}" -filepath nodegoat.zip
+          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname $APPLICATION_NAME -version "${{ github.run_id }}" -filepath nodegoat.zip
         continue-on-error: true
