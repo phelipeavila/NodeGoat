@@ -14,7 +14,7 @@ jobs:
   Veracode-SCA:
     name: Veracode SCA
     runs-on: self-hosted
-    if: false
+    if: true
     needs: [Checkout]
     strategy:
       fail-fast: true
