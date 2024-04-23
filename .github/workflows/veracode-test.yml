@@ -51,6 +51,31 @@ jobs:
       
       - name: Scan
         run: |
-          zip -r -v nodegoat.zip . -i '*.js' '*.html'
-          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname "$APPLICATION_NAME" -version "${{ github.run_id }}" -filepath nodegoat.zip
+          zip -r -v sourcefiles.zip . -i '*.js' '*.html'
+          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname "$APPLICATION_NAME" -version "${{ github.run_id }}" -filepath sourcefiles.zip
         continue-on-error: true
+
+  Veracode-SAST-Pipeline:
+    name: Veracode SAST Pipeline
+    runs-on: self-hosted
+    needs: [Veracode-SCA]
+    strategy:
+      fail-fast: true
+    env:
+      APPLICATION_NAME: "NodeApp - test"
+      POLICY_NAME: "Veracode Recommended Medium"
+    container:
+      image: veracode/pipeline-scan:latest
+      options: --user root
+
+    steps:
+      - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      
+      - name: Scan
+        run: |
+          zip -r -v sourcefiles.zip . -i '*.js' '*.html'
+          java -jar /opt/veracode/pipeline-scan.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -f sourcefiles.zip -p "$APPLICATION_NAME" -pn "$POLICY_NAME"
+    continue-on-error: true
