@@ -30,28 +30,23 @@ jobs:
           curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan $EXTRA_ARGS
         continue-on-error: true
 
-  # Veracode-SAST-Policy:
-  #   name: Veracode SAST Policy
-  #   runs-on: self-hosted
+  Veracode-SAST-Policy:
+    name: Veracode SAST Policy
+    runs-on: self-hosted
+    container:
+      image: veracode/api-wrapper-java:latest
+      options: --user root
+    strategy:
+      fail-fast: true
 
-  #   strategy:
-  #     fail-fast: true
-
-  #   steps:
-  #     - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
-  #       uses: actions/checkout@v2
-  #       with:
-  #         persist-credentials: false
+    steps:
+      - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
       
-  #     - name: Archive Release
-  #       env:
-  #         SRCCLR_API_TOKEN: ${{ secrets.SRCCLR_API_TOKEN }}
-  #       run: |
-  #         export SRCCLR_SCM_REF=${{ github.workflow }}
-  #         export SRCCLR_SCM_REF_TYPE="branch"
-  #         export SRCCLR_SCM_REV=${{ github.run_id }}
-  #         export SRCCLR_SCM_TYPE="GITHUB"
-  #         export EXTRA_ARGS='--update-advisor --uri-as-name' 
-  
-  #         curl -sSL https://download.sourceclear.com/ci.sh | bash -s -- scan $EXTRA_ARGS
-  #       continue-on-error: true
+      - name: Scan
+        run: |
+          zip -r -v nodegoat.zip . -i '*.js' '*.html'
+          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname "NodeGoat-Demo" -version "${{ github.run_id }}" -filepath nodegoat.zip
+        continue-on-error: true
