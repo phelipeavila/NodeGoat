@@ -35,13 +35,13 @@ jobs:
     name: Veracode SAST Policy
     runs-on: self-hosted
     needs: [Veracode-SCA]
+    strategy:
+      fail-fast: true
     env:
       APPLICATION_NAME: "NodeApp-test"
     container:
       image: veracode/api-wrapper-java:latest
       options: --user root
-    strategy:
-      fail-fast: true
 
     steps:
       - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
@@ -52,5 +52,5 @@ jobs:
       - name: Scan
         run: |
           zip -r -v nodegoat.zip . -i '*.js' '*.html'
-          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname $APPLICATION_NAME -version "${{ github.run_id }}" -filepath nodegoat.zip
+          java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createprofile false -appname " $APPLICATION_NAME " -version "${{ github.run_id }}" -filepath nodegoat.zip
         continue-on-error: true
