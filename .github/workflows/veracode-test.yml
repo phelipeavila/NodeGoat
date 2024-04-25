@@ -57,6 +57,7 @@ jobs:
           java -jar /opt/veracode/api-wrapper.jar -vid "${{ secrets.VERACODE_ID }}" -vkey "${{ secrets.VERACODE_KEY }}" -action UploadAndScan -createsandbox true -createprofile false -appname "${{ env.APPLICATION_NAME }}" -version "${{ github.run_id }}" -filepath sourcefiles.zip
         continue-on-error: true
 
+
   Veracode-SAST-Pipeline:
     name: Veracode SAST Pipeline
     if: false
